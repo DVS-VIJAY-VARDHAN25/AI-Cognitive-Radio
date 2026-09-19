@@ -1,0 +1,80 @@
+function trainModel()
+
+clc;
+clear;
+close all;
+
+disp('======================================');
+disp(' AI Cognitive Radio Model Training');
+disp('======================================');
+
+%==========================================
+% Load Dataset
+%==========================================
+
+load TrainingDataset.mat
+
+disp('Dataset Loaded Successfully');
+disp(['Total Samples : ' num2str(height(Dataset))]);
+
+%==========================================
+% Prepare Features and Labels
+%==========================================
+
+X = table2array(Dataset(:,1:end-1));
+Y = categorical(Dataset.Label);
+%==========================================
+% Train/Test Split
+%==========================================
+
+cv = cvpartition(Y,'HoldOut',0.2);
+
+XTrain = X(training(cv),:);
+YTrain = Y(training(cv));
+
+XTest = X(test(cv),:);
+YTest = Y(test(cv));
+%==========================================
+% Train Decision Tree
+%==========================================
+
+disp('Training Decision Tree...');
+
+Model = fitctree(XTrain,YTrain);
+
+disp('Training Completed');
+
+%==========================================
+% Test Model
+%==========================================
+
+YPred = predict(Model,XTest);
+
+accuracy = mean(YPred == YTest) * 100;
+
+disp(' ');
+disp('===========MODEL PERFORMANCE==========')
+disp(['Accuracy = ' num2str(accuracy,'%.2f') ' %']);
+disp(['Training Samples : ' num2str(height(XTrain))]);
+disp(['Testing Samples  : ' num2str(height(XTest))]);
+%==========================================
+% Confusion Matrix
+%==========================================
+
+figure;
+disp(class(YTest))
+disp(class(YPred))
+confusionchart(YTest,YPred);
+
+title('Decision Tree Confusion Matrix');
+
+%==========================================
+% Save Model
+%==========================================
+
+save('SavedModel.mat','Model','accuracy');
+
+disp(' ');
+disp('Model Saved Successfully');
+
+end

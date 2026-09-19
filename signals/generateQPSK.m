@@ -1,0 +1,127 @@
+function SignalData = generateQPSK()
+
+% Always locate the project root
+thisFile = mfilename('fullpath');
+signalsFolder = fileparts(thisFile);
+projectRoot = fileparts(signalsFolder);
+
+addpath(genpath(projectRoot));
+
+disp("Current folder:");
+disp(pwd)
+
+disp("projectConfig exists?");
+disp(exist('projectConfig','file'))
+
+config = projectConfig();
+
+SignalData = createSignalData();
+
+numberOfBits = 100;
+
+bits = randi([0 1],1,numberOfBits);
+
+disp('Generated Binary Data');
+disp(bits);
+
+% Ensure even number of bits
+if mod(numberOfBits,2)~=0
+    bits = [bits 0];
+end
+
+% Bit pairs
+bitPairs = reshape(bits,2,[])';
+
+symbols = zeros(1,size(bitPairs,1));
+
+for i=1:size(bitPairs,1)
+
+    if isequal(bitPairs(i,:),[0 0])
+        symbols(i)=pi/4;
+    elseif isequal(bitPairs(i,:),[0 1])
+        symbols(i)=3*pi/4;
+    elseif isequal(bitPairs(i,:),[1 1])
+        symbols(i)=5*pi/4;
+    else
+        symbols(i)=7*pi/4;
+    end
+
+end
+
+SignalData.bits = bits;
+SignalData.symbols = symbols;
+
+t = 0:1/config.Fs:config.signalDuration-1/config.Fs;
+
+SignalData.time = t;
+SignalData.Fs = config.Fs;
+
+samplesPerSymbol = floor(length(t)/length(symbols));
+
+qpskSignal = [];
+
+for k=1:length(symbols)
+
+    carrier = cos(2*pi*config.QPSKCarrier*...
+        t((k-1)*samplesPerSymbol+1:k*samplesPerSymbol)...
+        +symbols(k));
+
+    qpskSignal=[qpskSignal carrier];
+
+end
+
+SignalData.signal=qpskSignal;
+
+SignalData.signalName='QPSK';
+
+SignalData.modulation='Quadrature Phase Shift Keying';
+
+SignalData.centerFrequency=config.QPSKCarrier;
+%==========================================
+% Plot QPSK Signal
+%==========================================
+
+if config.trainingMode == 0
+
+    figure;
+
+    plot(t(1:length(qpskSignal)), qpskSignal,'LineWidth',1.2);
+
+    grid on;
+    title('Generated QPSK Signal');
+
+    xlabel('Time (s)');
+    ylabel('Amplitude');
+
+    %==========================================
+    % QPSK Constellation
+    %==========================================
+
+    figure;
+
+    scatter(cos(symbols),sin(symbols),80,'filled');
+
+    grid on;
+    axis equal;
+
+    title('QPSK Constellation');
+
+    xlabel('In-Phase');
+    ylabel('Quadrature');
+
+end
+
+disp('Length of QPSK Signal:');
+disp(length(qpskSignal));
+
+%==========================================
+% Process Complete Signal
+%==========================================
+
+disp(' ');
+disp('Processing Signal...');
+
+SignalData = processSignal(SignalData);
+
+disp('Processing Completed');
+disp('QPSK Signal Generated');

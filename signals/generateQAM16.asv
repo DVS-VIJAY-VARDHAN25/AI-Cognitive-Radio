@@ -1,0 +1,107 @@
+function SignalData = generateQAM16()
+
+%==========================================
+% Load Configuration
+%==========================================
+
+config = projectConfig();
+
+SignalData = createSignalData();
+
+%==========================================
+% Generate Random Data
+%==========================================
+
+numberOfSymbols = 100;
+
+I = randi([-3 3],1,numberOfSymbols);
+Q = randi([-3 3],1,numberOfSymbols);
+
+% Force valid 16-QAM levels
+levels = [-3 -1 1 3];
+
+for k=1:numberOfSymbols
+    [~,idx] = min(abs(levels-I(k)));
+    I(k)=levels(idx);
+
+    [~,idx] = min(abs(levels-Q(k)));
+    Q(k)=levels(idx);
+end
+
+SignalData.I = I;
+SignalData.Q = Q;
+
+%==========================================
+% Time Vector
+%==========================================
+
+t = 0:1/config.Fs:config.signalDuration-1/config.Fs;
+
+SignalData.time = t;
+SignalData.Fs = config.Fs;
+
+samplesPerSymbol = floor(length(t)/numberOfSymbols);
+
+qamSignal = [];
+
+%==========================================
+% Generate Signal
+%==========================================
+
+for k = 1:numberOfSymbols
+
+    ts = t((k-1)*samplesPerSymbol+1:k*samplesPerSymbol);
+
+    Iwave = I(k)*cos(2*pi*config.QAMCarrier*ts);
+
+    Qwave = Q(k)*sin(2*pi*config.QAMCarrier*ts);
+
+    qamSignal = [qamSignal Iwave-Qwave];
+
+end
+
+SignalData.signal = qamSignal;
+
+SignalData.signalName = 'QAM16';
+
+SignalData.modulation = 'QAM16';
+
+SignalData.centerFrequency = config.QAMCarrier;
+
+%==========================================
+% Plot
+%==========================================
+
+figure;
+plot(t(1:length(qam16Signal)), bpskSignal,'LineWidth',1.2);
+grid on;
+title('Generated QAM16 Signal');
+xlabel('Sample');
+ylabel('Amplitude');
+
+figure;
+scatter(I,Q,'filled');
+grid on;
+title('QAM16 Constellation');
+xlabel('In-Phase');
+ylabel('Quadrature');
+
+%==========================================
+% Processing
+%==========================================
+
+SignalData = calculateFFT(SignalData);
+SignalData = calculatePSD(SignalData);
+SignalData = calculateEnergy(SignalData);
+SignalData = calculateAveragePower(SignalData);
+SignalData = calculatePeakPower(SignalData);
+SignalData = calculatePeakToPeak(SignalData);
+SignalData = calculatePeakFrequency(SignalData);
+SignalData = calculateBandwidth(SignalData);
+SignalData = calculateNoiseFloor(SignalData);
+SignalData = calculateSNR(SignalData);
+SignalData = normalizeFeatures(SignalData);
+
+disp('QAM16 Signal Generated Successfully');
+
+end

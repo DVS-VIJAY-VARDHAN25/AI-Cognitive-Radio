@@ -1,0 +1,109 @@
+function SignalData = generateOFDM()
+
+%==========================================
+% Load Configuration
+%==========================================
+
+config = projectConfig();
+
+SignalData = createSignalData();
+
+%==========================================
+% OFDM Parameters
+%==========================================
+
+N = 64;
+
+cpLength = 16;
+
+numSymbols = 20;
+
+%==========================================
+% Generate Random QPSK Symbols
+%==========================================
+
+bits = randi([0 1],N*2,numSymbols);
+
+symbols = (2*bits(1:2:end,:)-1) + ...
+          1j*(2*bits(2:2:end,:)-1);
+
+%==========================================
+% OFDM Modulation
+%==========================================
+
+ofdmSignal = [];
+
+for k = 1:numSymbols
+
+    X = symbols(:,k);
+
+    x = ifft(X);
+
+    cp = x(end-cpLength+1:end);
+
+    tx = [cp; x];
+
+    ofdmSignal = [ofdmSignal; tx];
+
+end
+
+ofdmSignal = real(ofdmSignal(:));
+
+SignalData.signal = ofdmSignal;
+
+SignalData.signalName = 'OFDM';
+
+SignalData.modulation = 'Orthogonal Frequency Division Multiplexing';
+
+SignalData.centerFrequency = config.OFDMCarrier;
+
+SignalData.bits = bits;
+
+SignalData
+
+SignalData.time = (0:length(ofdmSignal)-1)/config.Fs;
+
+SignalData.Fs = config.Fs;
+
+%==========================================
+% Plot
+%==========================================
+
+figure;
+plot(t(1:length(ofdmSignal)), ofdmSignal,'LineWidth',1.2);
+
+grid on;
+title('Generated OFDM Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+%==========================================
+% Constellation
+%==========================================
+
+figure;
+scatter(real(symbols(:)),imag(symbols(:)),'filled');
+grid on;
+axis equal;
+title('OFDM QPSK Constellation');
+xlabel('In-Phase');
+ylabel('Quadrature');
+
+disp('Length of OFDM Signal:');
+disp(length(ofdmSignal));
+
+%%=========================================
+% Process Complete Signal
+%==========================================
+
+disp(' ');
+disp('Processing Signal...');
+
+SignalData = processSignal(SignalData);
+
+disp('Processing Completed Successfully');
+
+disp('OFDM Signal Generated Successfully');
+disp('OFDM Signal Generated Successfully');
+
+end
