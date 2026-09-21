@@ -156,12 +156,12 @@ The project demonstrates an integrated MATLAB environment for communication-sign
   
  ## Project Information
  
-**Developed by:** D.V. Sai Vijay Vardhan  
-**Program:** B.Tech in Electronics and Communication Engineering  
-**Institution:** Mahindra University, Hyderabad  
-**Project Domain:**  
+Developed by: D.V. Sai Vijay Vardhan  
+Program: B.Tech in Electronics and Communication Engineering  
+Institution: Mahindra University, Hyderabad  
+Project Domain:
 Cognitive Radio • Signal Processing • Wireless Communication • Spectrum Analysis
----
+
 
 
 
